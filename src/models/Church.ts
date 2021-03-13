@@ -11,5 +11,5 @@ export class Church {
   public country?: string;
   public registrationDate?: Date;
   public apis?: Api[];
-  public churchJwt?: string;
+  public jwt?: string;
 }

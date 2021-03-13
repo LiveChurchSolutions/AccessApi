@@ -2,7 +2,6 @@ import { Principal, AuthenticatedUser as BaseAuthenticatedUser } from '../apiBas
 import { Api, Church, LoginResponse, User } from '../models'
 import jwt from "jsonwebtoken";
 import { Repositories } from '../repositories';
-import { AppStream } from 'aws-sdk';
 
 export class AuthenticatedUser extends BaseAuthenticatedUser {
 
@@ -34,7 +33,7 @@ export class AuthenticatedUser extends BaseAuthenticatedUser {
     public static setJwt(allChurches: Church[], user: User) {
         allChurches.forEach(c => {
             c.apis.forEach(api => { api.jwt = AuthenticatedUser.getApiJwt(api, user, c) });
-            c.churchJwt = AuthenticatedUser.getChurchJwt(user, c)
+            c.jwt = AuthenticatedUser.getChurchJwt(user, c)
         });
     }
 
