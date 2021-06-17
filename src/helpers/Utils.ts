@@ -1,6 +1,6 @@
 export class Utils {
     static isEmpty(value: any) {
-        return value === undefined || value === null || value === "";
+        return value === undefined || value === null || value === '';
     }
 
     static convertToTitleCase(value: string) {
