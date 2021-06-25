@@ -25,4 +25,11 @@ export class UserChurchRepository {
         return userChurch;
     }
 
+    public loadByUserIdAndChurchId(userId: string, churchId: string) {
+        console.log(userId, churchId);
+        const sql = "SELECT * FROM userChurches WHERE userId=? AND churchId=?";
+        const params = [userId, churchId];
+        return DB.query(sql, params);
+    }
+
 }
