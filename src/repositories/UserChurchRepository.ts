@@ -25,11 +25,21 @@ export class UserChurchRepository {
         return userChurch;
     }
 
-    public loadByUserIdAndChurchId(userId: string, churchId: string) {
-        console.log(userId, churchId);
+    public loadByUserId(userId: string, churchId: string) {
         const sql = "SELECT * FROM userChurches WHERE userId=? AND churchId=?";
         const params = [userId, churchId];
-        return DB.query(sql, params);
+        return DB.queryOne(sql, params);
+    }
+
+    public convertToModel({ id, userId, churchId, personId }: any) {
+        const result: UserChurch = { id, userId, churchId, personId };
+        return result;
+    }
+
+    public convertAllToModel(data: any[]) {
+        const result: UserChurch[] = [];
+        data.forEach(d => result.push(this.convertToModel(d)));
+        return result;
     }
 
 }

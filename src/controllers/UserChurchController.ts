@@ -1,4 +1,4 @@
-import { controller, httpGet, httpPost } from "inversify-express-utils";
+import { controller, httpGet, httpPost, interfaces } from "inversify-express-utils";
 import express from "express";
 import { AccessBaseController } from "./AccessBaseController";
 import { UserChurch } from "../models";
@@ -6,15 +6,11 @@ import { UserChurch } from "../models";
 @controller("/userchurch")
 export class UserChurchController extends AccessBaseController {
 
-    private async doesRecordExist(userId: string, churchId: string): Promise<boolean> {
-        const data = await this.repositories.userChurch.loadByUserIdAndChurchId(userId, churchId);
-        return data.length > 0;
-    }
-
     @httpPost("/")
     public async save(req: express.Request<{}, {}, UserChurch>, res: express.Response): Promise<any> {
         return this.actionWrapper(req, res, async ({id, churchId}) => {
-            if (await this.doesRecordExist(id, churchId)) return this.json({ message: 'User already has a linked person record' }, 400);
+            const record = await this.repositories.userChurch.loadByUserId(id, churchId);
+            if (record) return this.json({ message: 'User already has a linked person record' }, 400);
             const userChurch: UserChurch = {
                 userId: id,
                 churchId,
@@ -22,7 +18,16 @@ export class UserChurchController extends AccessBaseController {
             }
 
             const result = await this.repositories.userChurch.save(userChurch);
-            return result;
+            return this.repositories.userChurch.convertToModel(result);
+        })
+    }
+
+    @httpGet("/")
+    public async getByUserId(req: express.Request, res: express.Response): Promise<interfaces.IHttpActionResult> {
+        return this.actionWrapper(req, res, async ({id, churchId}) => {
+            const data = await this.repositories.userChurch.loadByUserId(id, churchId);
+            if (!data) return this.json({}, 200);
+            return this.repositories.userChurch.convertToModel(data);
         })
     }
 
