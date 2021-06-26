@@ -6,7 +6,6 @@ CREATE TABLE `userChurches` (
   `churchId` char(11) DEFAULT NULL,
   `personId` char(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY (`personId`),
   KEY `userId` (`userId`),
   KEY `churchId` (`churchId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
