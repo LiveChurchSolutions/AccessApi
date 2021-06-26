@@ -22,13 +22,4 @@ export class UserChurchController extends AccessBaseController {
         })
     }
 
-    @httpGet("/")
-    public async getByUserId(req: express.Request, res: express.Response): Promise<interfaces.IHttpActionResult> {
-        return this.actionWrapper(req, res, async ({id, churchId}) => {
-            const data = await this.repositories.userChurch.loadByUserId(id, churchId);
-            if (!data) return this.json({}, 200);
-            return this.repositories.userChurch.convertToModel(data);
-        })
-    }
-
 }
