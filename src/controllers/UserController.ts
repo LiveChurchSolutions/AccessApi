@@ -96,8 +96,12 @@ export class UserController extends AccessBaseController {
       const { userId, userEmail, userName } = req.body;
       let user: User;
 
-      if (userId) user = await this.repositories.user.load(userId);
-      if (userEmail) user = await this.repositories.user.loadByEmail(userEmail);
+      if (userId) {
+        user = await this.repositories.user.load(userId);
+      } else {
+        user = await this.repositories.user.loadByEmail(userEmail);
+      }
+
       if (!user) {
         user = { email: userEmail, displayName: userName };
         user.registrationDate = new Date();
