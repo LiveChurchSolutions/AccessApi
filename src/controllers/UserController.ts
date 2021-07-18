@@ -30,6 +30,11 @@ const setDisplayNameValidation = [
   body('lastName').exists().withMessage("enter last name").not().isEmpty().trim().escape()
 ]
 
+const updateEmailValidation = [
+  body("userId").optional().isString(),
+  body("email").isEmail().trim().normalizeEmail().withMessage("enter a valid email address")
+]
+
 @controller("/users")
 export class UserController extends AccessBaseController {
 
@@ -202,9 +207,14 @@ export class UserController extends AccessBaseController {
     });
   }
 
-  @httpPost("/updateEmail")
+  @httpPost("/updateEmail", ...updateEmailValidation)
   public async updateEmail(req: express.Request<{}, {}, { email: string, userId?: string }>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
       let user = await this.repositories.user.load(req.body.userId || au.id);
       if (user !== null) {
         const existingUser = await this.repositories.user.loadByEmail(req.body.email);
