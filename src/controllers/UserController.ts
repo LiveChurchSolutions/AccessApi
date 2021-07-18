@@ -1,7 +1,7 @@
 import { controller, httpGet, httpPost, interfaces, requestParam } from "inversify-express-utils";
 import express from "express";
 import bcrypt from "bcryptjs";
-import { body, validationResult } from "express-validator";
+import { body, check, oneOf, validationResult } from "express-validator";
 import { LoginRequest, User, ResetPasswordRequest, LoadCreateUserRequest, Church, EmailPassword, ChurchApp } from "../models";
 import { AuthenticatedUser } from "../auth";
 import { AccessBaseController } from "./AccessBaseController"
@@ -14,10 +14,14 @@ const emailPasswordValidation = [
 ];
 
 const loadOrCreateValidation = [
-  body("userId").optional().isString().withMessage("enter a valid userId"),
-  body("userEmail").optional().isEmail().trim().normalizeEmail().withMessage("enter a valid email address"),
-  body('firstName').optional().not().isEmpty().trim().escape().withMessage("enter first name"),
-  body('lastName').optional().not().isEmpty().trim().escape().withMessage("enter last name")
+  oneOf([
+    [
+      body("userEmail").exists().isEmail().withMessage("enter a valid email address").trim().normalizeEmail(),
+      body('firstName').exists().withMessage("enter first name").not().isEmpty().trim().escape(),
+      body('lastName').exists().withMessage("enter last name").not().isEmpty().trim().escape()
+    ],
+    body("userId").exists().withMessage("enter userId").isString()
+  ])
 ]
 
 @controller("/users")
