@@ -8,6 +8,11 @@ import { AccessBaseController } from "./AccessBaseController"
 import { EmailHelper, Permissions } from "../helpers";
 import { v4 } from 'uuid';
 
+const emailPasswordValidation = [
+  body("email").isEmail().trim().normalizeEmail().withMessage("enter a valid email address"),
+  body("password").isLength({ min: 6 }).withMessage("must be at least 6 chars long")
+];
+
 @controller("/users")
 export class UserController extends AccessBaseController {
 
@@ -55,7 +60,7 @@ export class UserController extends AccessBaseController {
     return churches.map(c => { c.apps = churchApps[c.id]; return c });
   }
 
-  @httpPost("/verifyCredentials", body("email").isEmail().trim().normalizeEmail().withMessage("enter a valid email address"), body("password").isLength({ min: 6 }).withMessage("must be at least 6 chars long"))
+  @httpPost("/verifyCredentials", ...emailPasswordValidation)
   public async verifyCredentials(req: express.Request<{}, {}, EmailPassword>, res: express.Response): Promise<any> {
     try {
       const errors = validationResult(req);
