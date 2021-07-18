@@ -13,6 +13,13 @@ const emailPasswordValidation = [
   body("password").isLength({ min: 6 }).withMessage("must be at least 6 chars long")
 ];
 
+const loadOrCreateValidation = [
+  body("userId").optional().isString().withMessage("enter a valid userId"),
+  body("userEmail").optional().isEmail().trim().normalizeEmail().withMessage("enter a valid email address"),
+  body('firstName').optional().not().isEmpty().trim().escape().withMessage("enter first name"),
+  body('lastName').optional().not().isEmpty().trim().escape().withMessage("enter last name")
+]
+
 @controller("/users")
 export class UserController extends AccessBaseController {
 
@@ -101,9 +108,14 @@ export class UserController extends AccessBaseController {
     }
   }
 
-  @httpPost("/loadOrCreate")
+  @httpPost("/loadOrCreate", ...loadOrCreateValidation)
   public async loadOrCreate(req: express.Request<{}, {}, LoadCreateUserRequest>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
       const { userId, userEmail, firstName, lastName } = req.body;
       let user: User;
 
