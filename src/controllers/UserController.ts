@@ -148,9 +148,14 @@ export class UserController extends AccessBaseController {
 
 
 
-  @httpPost("/forgot")
+  @httpPost("/forgot", body("userEmail").exists().trim().normalizeEmail().withMessage("enter a valid email address"))
   public async forgotPassword(req: express.Request<{}, {}, ResetPasswordRequest>, res: express.Response): Promise<any> {
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
       const user = await this.repositories.user.loadByEmail(req.body.userEmail);
       if (user === null) return this.json({ emailed: false }, 200);
       else {
