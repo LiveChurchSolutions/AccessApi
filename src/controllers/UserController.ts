@@ -24,6 +24,12 @@ const loadOrCreateValidation = [
   ])
 ]
 
+const setDisplayNameValidation = [
+  body("userId").optional().isString(),
+  body('firstName').exists().withMessage("enter first name").not().isEmpty().trim().escape(),
+  body('lastName').exists().withMessage("enter last name").not().isEmpty().trim().escape()
+]
+
 @controller("/users")
 export class UserController extends AccessBaseController {
 
@@ -177,9 +183,14 @@ export class UserController extends AccessBaseController {
   }
 
 
-  @httpPost("/setDisplayName")
+  @httpPost("/setDisplayName", ...setDisplayNameValidation)
   public async setDisplayName(req: express.Request<{}, {}, { firstName: string, lastName: string, userId?: string }>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
       let user = await this.repositories.user.load(req.body.userId || au.id);
       if (user !== null) {
         user.firstName = req.body.firstName;
