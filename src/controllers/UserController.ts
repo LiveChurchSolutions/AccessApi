@@ -229,9 +229,14 @@ export class UserController extends AccessBaseController {
     });
   }
 
-  @httpPost("/updatePassword")
+  @httpPost("/updatePassword", body("newPassword").isLength({ min: 6 }).withMessage("must be at least 6 chars long"))
   public async updatePassword(req: express.Request<{}, {}, { newPassword: string }>, res: express.Response): Promise<any> {
     return this.actionWrapper(req, res, async (au) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
       let user = await this.repositories.user.load(au.id);
       if (user !== null) {
         const hashedPass = bcrypt.hashSync(req.body.newPassword, 10);
