@@ -1,6 +1,7 @@
 import { controller, httpGet, httpPost, interfaces, requestParam } from "inversify-express-utils";
 import express from "express";
 import bcrypt from "bcryptjs";
+import { body, validationResult } from "express-validator";
 import { LoginRequest, User, ResetPasswordRequest, LoadCreateUserRequest, Church, EmailPassword, ChurchApp } from "../models";
 import { AuthenticatedUser } from "../auth";
 import { AccessBaseController } from "./AccessBaseController"
@@ -54,9 +55,14 @@ export class UserController extends AccessBaseController {
     return churches.map(c => { c.apps = churchApps[c.id]; return c });
   }
 
-  @httpPost("/verifyCredentials")
+  @httpPost("/verifyCredentials", body("email").isEmail().normalizeEmail(), body("password").isLength({ min: 6 }).withMessage("must be at least 6 chars long"))
   public async verifyCredentials(req: express.Request<{}, {}, EmailPassword>, res: express.Response): Promise<any> {
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
       const user = await this.repositories.user.loadByEmail(req.body.email);
       if (user === null) {
         return this.json({}, 200);
@@ -111,8 +117,8 @@ export class UserController extends AccessBaseController {
 
         const loginLink = this.createLoginLink(user.authGuid);
         const subject = "Live Church Solutions One Time Login Link";
-        const body = `Your one time login link: <a href="${loginLink}">${loginLink}</a>`;
-        await EmailHelper.sendEmail({ from: process.env.SUPPORT_EMAIL, to: user.email, subject, body});
+        const emailBody = `Your one time login link: <a href="${loginLink}">${loginLink}</a>`;
+        await EmailHelper.sendEmail({ from: process.env.SUPPORT_EMAIL, to: user.email, subject, body: emailBody});
       }
       user.password = null;
       return this.json(user, 200);
@@ -130,11 +136,11 @@ export class UserController extends AccessBaseController {
         user.authGuid = v4();
         const loginLink = this.createLoginLink(user.authGuid);
         const subject = "Live Church Solutions Password Reset"
-        const body = `Please click here to reset your password: <a href="${loginLink}">${loginLink}</a>"`;
+        const emailBody = `Please click here to reset your password: <a href="${loginLink}">${loginLink}</a>"`;
 
         const promises = [];
         promises.push(this.repositories.user.save(user));
-        promises.push(EmailHelper.sendEmail({ from: process.env.SUPPORT_EMAIL, to: user.email, subject, body }));
+        promises.push(EmailHelper.sendEmail({ from: process.env.SUPPORT_EMAIL, to: user.email, subject, body: emailBody }));
         await Promise.all(promises);
         return this.json({ emailed: true }, 200);
       }
